@@ -1,4 +1,7 @@
 FROM node:26-alpine
+LABEL org.opencontainers.image.source="https://github.com/waydef/synced" \
+      org.opencontainers.image.description="synced: a self-hosted watch party" \
+      org.opencontainers.image.licenses="MIT"
 
 # ffmpeg brings ffprobe; busybox already has nice
 RUN apk add --no-cache ffmpeg

@@ -1,7 +1,7 @@
 services:
   synced:
-    build: .
-    image: synced
+    # the published image; replace with "build: ." to build from this checkout
+    image: ghcr.io/waydef/synced:latest
     restart: unless-stopped
     ports:
       # viewers; put a reverse proxy with https in front of it

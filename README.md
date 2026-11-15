@@ -63,11 +63,20 @@ open `http://127.0.0.1:8088/host` on the same machine, and send your friends the
 
 ## docker
 
+one command, with your films in `~/Videos`:
+
+```sh
+docker run -d --name synced -p 8080:8080 -p 127.0.0.1:8088:8088 \
+  -v ~/Videos:/media:ro -v synced-data:/data ghcr.io/waydef/synced:latest
+```
+
+the image is built for amd64 and arm64. arm64 covers boards like a raspberry pi 4 or 5; that was not tested on a real board, and such a board has little cpu for transcoding. with compose:
+
 ```sh
 git clone https://github.com/waydef/synced.git
 cd synced
 mkdir films        # put the videos here
-docker compose up -d --build
+docker compose up -d
 ```
 
 `compose.yaml` publishes the viewer port on `8080` and the host port on `127.0.0.1:8088` of the docker host. the room state lives in the `data` volume. to host from your laptop while the server is somewhere else, tunnel the host port:
