@@ -31,6 +31,16 @@ the host chooses the film from the film folder (`MEDIA_DIR`) on the server, or, 
 
 each person in the room gets their own random key to the stream. removing someone revokes their key at once.
 
+## how it compares
+
+synced is built for one thing: a movie night from your own files, where friends join with a link and a nick. if one of these already fits you, it may be the better choice.
+
+- jellyfin with syncplay is the closest option and a full media server. syncplay shares play, pause and seek, but every friend needs a jellyfin account on your server, chat comes from a third-party plugin (jellychat), and not every jellyfin app supports syncplay. if you already run jellyfin and your friends have accounts, try it first. synced needs no accounts, has chat, replies and reactions built in, and runs in any browser.
+- opentogethertube and watchparty (howardchung) play videos from links, youtube or a shared browser. they are good for clips and streams, but they do not serve a library of files from your disk the way synced does.
+- syncplay (the desktop tool) syncs mpv, vlc or mpc players. every viewer installs it and needs their own copy of the file. with synced the file stays on your server and viewers only need a browser.
+
+what synced does not have yet: a media library with posters, accounts, voice chat, and chat history after the session ends.
+
 ## requirements
 
 - linux or macos. on windows run it in docker or wsl2: the server relies on `nice` and on pausing ffmpeg with `SIGSTOP`.
@@ -156,4 +166,4 @@ mit, see [LICENSE](LICENSE). the reaction emoji are google's animated noto emoji
 
 ## кратко на русском
 
-synced: совместный просмотр фильмов на своём сервере, аналог rave без чужих серверов и регистрации. хост выбирает файл из папки на сервере, друзья открывают сайт, вводят ник и смотрят синхронно: общая пауза и перемотка, чат с ответами и реакциями, своя озвучка, субтитры и качество у каждого. интерфейс на русском и английском (`?lang=ru`). запуск: `MEDIA_DIR=~/Videos npm start` или `docker compose up -d`, страница хоста `http://127.0.0.1:8088/host`.
+synced: совместный просмотр фильмов на своём сервере, аналог rave без чужих серверов и регистрации. хост выбирает файл из папки на сервере, друзья открывают сайт, вводят ник и смотрят синхронно: общая пауза и перемотка, чат с ответами и реакциями, своя озвучка, субтитры и качество у каждого. интерфейс на русском и английском (`?lang=ru`). в отличие от jellyfin с syncplay, друзьям не нужны аккаунты: только ссылка и ник. запуск: `MEDIA_DIR=~/Videos npm start` или `docker compose up -d`, страница хоста `http://127.0.0.1:8088/host`.
