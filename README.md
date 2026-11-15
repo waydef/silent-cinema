@@ -2,7 +2,7 @@
 
 a self-hosted watch party. you put a video file on your own server, open the host page, and the friends you let in watch it with you in sync: one shared pause, one shared seek bar, a chat with replies and reactions. think of rave, except the film never leaves your machine and nobody needs an account.
 
-![the player with the chat open](docs/screenshots/player.png)
+![a viewer joins, the film starts, the chat and reactions, a double tap on a phone](docs/demo.webp)
 
 ## what it does
 
@@ -16,9 +16,9 @@ a self-hosted watch party. you put a video file on your own server, open the hos
 - survives restarts and flaky networks: the room, position and chat are saved to disk, clients reconnect by themselves, and open pages reload themselves after an update and continue at the same frame.
 - english and russian interface, picked from the browser language or `?lang=en` / `?lang=ru`.
 
-| join | host | phone |
-| --- | --- | --- |
-| ![the join screen](docs/screenshots/join.png) | ![the host page with the film folder open](docs/screenshots/host.png) | ![the player on a phone](docs/screenshots/phone.png) |
+| player | host | join | phone |
+| --- | --- | --- | --- |
+| ![the player with the chat open](docs/screenshots/player.png) | ![the host page with the film folder open](docs/screenshots/host.png) | ![the join screen](docs/screenshots/join.png) | ![the player on a phone](docs/screenshots/phone.png) |
 
 ## how it works
 
