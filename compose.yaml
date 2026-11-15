@@ -1,0 +1,20 @@
+services:
+  silent-cinema:
+    build: .
+    image: silent-cinema
+    restart: unless-stopped
+    ports:
+      # viewers; put a reverse proxy with https in front of it
+      - "8080:8080"
+      # the host page: loopback of the docker host only, reach it over ssh -L 8088:127.0.0.1:8088
+      - "127.0.0.1:8088:8088"
+    volumes:
+      - ./films:/media:ro
+      - data:/data
+    environment:
+      PUBLIC_URL: https://cinema.example.com
+      # TRUST_PROXY: "1"
+      # HOST_NAME: "host"
+
+volumes:
+  data:

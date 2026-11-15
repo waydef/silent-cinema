@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0a0b10">
+<meta name="color-scheme" content="dark">
+<title>host · silent.cinema</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/boot.js"></script>
+</head>
+<body>
+<div id="app">
+  <main id="setup" class="console">
+    <div class="console-in">
+      <header>
+        <div class="mark">silent<b>.</b>cinema</div>
+        <span class="offline hidden" id="conn" data-t="host.offline">no connection to the server</span>
+      </header>
+      <h1 data-t="host.title">what are we watching?</h1>
+      <p class="note" id="reason" role="status"></p>
+
+      <section class="field">
+        <h2 data-t="host.nick">your nick</h2>
+        <div class="who">
+          <button class="myava small" id="myava" type="button" aria-label="set a profile picture" data-t-aria="ava.set"><span class="ava" id="myavaimg"></span><i class="plus" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg></i></button>
+          <form class="nick small auto" id="hostnameform">
+            <input id="hostname" maxlength="24" autocomplete="nickname" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="your nick" data-t-aria="host.nick">
+          </form>
+        </div>
+        <p class="note" id="hostnamenote" role="status"></p>
+      </section>
+
+      <section class="field" id="s1">
+        <h2 data-t="host.who">who is watching</h2>
+        <div class="chips" id="users"></div>
+        <p class="empty" id="nousers"></p>
+      </section>
+
+      <section class="field" id="s2">
+        <h2 data-t="host.film">film</h2>
+        <button class="picker" id="pickbtn" aria-label="choose a film" data-t-aria="pick.choose" aria-controls="lib" aria-expanded="false">
+          <svg class="film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7.5 4.5v15M16.5 4.5v15M3.5 9h4M3.5 15h4M16.5 9h4M16.5 15h4"/></svg>
+          <span class="picker-text"><span class="fname" id="fname" data-t="pick.choose">choose a film</span><span class="fmeta" id="fmeta"></span></span>
+          <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h5l2 2h9v8.5c0 .8-.7 1.5-1.5 1.5h-13c-.8 0-1.5-.7-1.5-1.5z"/></svg>
+        </button>
+        <div class="lib hidden" id="lib">
+          <input id="libsearch" type="search" class="hidden" placeholder="search" aria-label="search" data-t-ph="lib.search" data-t-aria="lib.search" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <div class="lib-list" id="liblist"></div>
+          <p class="note" id="libnote" role="status"></p>
+          <button class="link" id="libother" type="button" data-t="lib.other">another file on this computer…</button>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button class="main" id="start" disabled><span id="startlabel" data-t="start">start watching</span></button>
+        <p class="err" id="err" role="alert"></p>
+      </div>
+    </div>
+  </main>
+
+  <div id="playerbox" class="watch hidden">
+    <div class="stage" id="stage">
+      <video id="video" playsinline webkit-playsinline preload="auto"></video>
+    </div>
+    <aside class="chat empty" id="chatpanel">
+      <header>
+        <div class="tabs" role="tablist">
+          <button class="tab on" data-tab="chat" role="tab" aria-selected="true" data-t="tab.chat">chat</button>
+          <button class="tab" data-tab="people" role="tab" aria-selected="false"><span data-t="tab.people">people</span><span class="count"></span></button>
+        </div>
+        <button class="ib close" aria-label="close chat" data-t-aria="chat.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+      </header>
+      <div class="panes">
+        <div class="pane chatpane">
+          <div class="log" id="chat" aria-live="polite"></div>
+          <div class="typing" aria-live="polite"><i></i><i></i><i></i><span></span></div>
+          <div class="replybar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 7l-5 5 5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v1"/></svg><div><b></b><span></span></div><button type="button" class="ib" aria-label="cancel reply" data-t-aria="chat.cancelReply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+          <form><input id="chattext" maxlength="400" placeholder="message" autocomplete="off" enterkeyhint="send" aria-label="message" data-t-ph="chat.placeholder" data-t-aria="chat.placeholder"><button aria-label="send" data-t-aria="chat.send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>
+        </div>
+        <div class="pane people" id="people">
+          <div class="phost"></div>
+          <div class="psep"><span data-t="people.viewers">viewers</span><b class="pnum"></b><span class="grow"></span><button class="sw mini" data-opt="control" role="switch" aria-checked="true" data-t-aria="host.ctlAllAria" data-t-title="host.ctlAllTitle"><small data-t="host.ctlShort">control</small><i></i></button></div>
+          <div class="plist"></div>
+          <div class="pwait"><h3 data-t="host.door">at the door</h3><div class="pwait-list"></div></div>
+          <div class="popts">
+            <button class="sw" data-opt="open" role="switch" aria-checked="false"><span><b data-t="host.open">let latecomers in right away</b><small data-t="host.openSub"></small></span><i></i></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <main id="kicked" class="lobby hidden">
+    <div class="mark">silent<b>.</b>cinema</div>
+    <div class="lobby-body">
+      <h1 data-t="kicked.title"></h1>
+      <p class="lead" data-t="kicked.lead"></p>
+      <button class="main" id="takeback" data-t="kicked.back">take control back</button>
+    </div>
+  </main>
+</div>
+<script src="/static/hls.min.js"></script>
+<script src="/static/i18n.js"></script>
+<script src="/static/common.js"></script>
+<script src="/static/media.js"></script>
+<script src="/static/sync.js"></script>
+<script src="/static/player.js"></script>
+<script src="/static/host.js"></script>
+</body>
+</html>

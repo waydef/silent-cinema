@@ -1,0 +1,31 @@
+# /etc/systemd/system/silent-cinema.service
+# expects the code in /opt/silent-cinema (npm ci --omit=dev) and a user named cinema
+# that can read the film folder. settings go to /etc/silent-cinema.env (see .env.example).
+[Unit]
+Description=silent.cinema watch party
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=cinema
+WorkingDirectory=/opt/silent-cinema
+Environment=STATE_DIR=/var/lib/silent-cinema CACHE_DIR=/var/cache/silent-cinema
+EnvironmentFile=-/etc/silent-cinema.env
+ExecStart=/usr/bin/node server.js
+# picks up a renewed certificate without dropping anyone
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2
+
+StateDirectory=silent-cinema
+CacheDirectory=silent-cinema
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+# uncomment to serve https on port 443 directly (PORT=443 with TLS_CERT and TLS_KEY)
+#AmbientCapabilities=CAP_NET_BIND_SERVICE
+#CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

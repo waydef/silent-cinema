@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0a0b10">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>silent.cinema</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/boot.js"></script>
+</head>
+<body>
+<div id="app">
+  <main id="join" class="lobby">
+    <div class="mark">silent<b>.</b>cinema</div>
+    <div class="lobby-body">
+      <h1 data-t="join.title">movie night</h1>
+      <p class="lead" data-t="join.lead"></p>
+      <form id="joinform" class="nick">
+        <input id="nick" maxlength="24" placeholder="your nick" autocomplete="nickname" autocapitalize="off" enterkeyhint="go" spellcheck="false" aria-label="nick" data-t-ph="join.nick" data-t-aria="join.nickAria">
+        <button aria-label="join" data-t-aria="join.go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </form>
+      <div id="joinerr" class="err" role="alert"></div>
+    </div>
+    <div class="status" id="hostline"><span></span></div>
+  </main>
+
+  <main id="wait" class="lobby hidden">
+    <div class="mark">silent<b>.</b>cinema</div>
+    <div class="lobby-body">
+      <button class="myava" id="myava" type="button" aria-label="set a profile picture" data-t-aria="ava.set"><span class="ava big" id="myavaimg"></span><i class="plus" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg></i></button>
+      <h1 id="hello"></h1>
+      <p class="lead" id="waitmsg" data-t="wait.msg"></p>
+      <div class="sweep" aria-hidden="true"><i></i></div>
+      <p class="err" id="waitnote" role="alert"></p>
+      <p class="err" id="avaerr" role="alert"></p>
+      <button class="link" id="rename" data-t="wait.leave">leave the room</button>
+    </div>
+    <div class="status" id="hostline2"><span></span></div>
+  </main>
+
+  <main id="replaced" class="lobby hidden">
+    <div class="mark">silent<b>.</b>cinema</div>
+    <div class="lobby-body">
+      <h1 data-t="replaced.title"></h1>
+      <p class="lead" data-t="replaced.lead"></p>
+      <button class="main" id="takeback" data-t="replaced.back">watch here</button>
+    </div>
+  </main>
+
+  <div id="watch" class="watch hidden">
+    <div class="stage" id="stage">
+      <video id="video" playsinline webkit-playsinline preload="auto"></video>
+    </div>
+    <aside class="chat empty" id="chatpanel">
+      <header>
+        <div class="tabs" role="tablist">
+          <button class="tab on" data-tab="chat" role="tab" aria-selected="true" data-t="tab.chat">chat</button>
+          <button class="tab" data-tab="people" role="tab" aria-selected="false"><span data-t="tab.people">people</span><span class="count"></span></button>
+        </div>
+        <button class="ib close" aria-label="close chat" data-t-aria="chat.close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+      </header>
+      <div class="panes">
+        <div class="pane chatpane">
+          <div class="log" id="chat" aria-live="polite"></div>
+          <div class="typing" aria-live="polite"><i></i><i></i><i></i><span></span></div>
+          <div class="replybar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 7l-5 5 5 5"/><path d="M5 12h9a5 5 0 0 1 5 5v1"/></svg><div><b></b><span></span></div><button type="button" class="ib" aria-label="cancel reply" data-t-aria="chat.cancelReply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div>
+          <form><input id="chattext" maxlength="400" placeholder="message" autocomplete="off" enterkeyhint="send" aria-label="message" data-t-ph="chat.placeholder" data-t-aria="chat.placeholder"><button aria-label="send" data-t-aria="chat.send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>
+        </div>
+        <div class="pane people" id="people">
+          <div class="phost"></div>
+          <div class="psep"><span data-t="people.viewers">viewers</span><b class="pnum"></b></div>
+          <div class="plist"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+<script src="/static/hls.min.js"></script>
+<script src="/static/i18n.js"></script>
+<script src="/static/common.js"></script>
+<script src="/static/media.js"></script>
+<script src="/static/sync.js"></script>
+<script src="/static/player.js"></script>
+<script src="/static/viewer.js"></script>
+</body>
+</html>

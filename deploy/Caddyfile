@@ -1,0 +1,6 @@
+# caddy gets and renews the certificate and passes websockets on its own.
+# run silent.cinema with BIND=127.0.0.1 and TRUST_PROXY=1.
+cinema.example.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080
+}

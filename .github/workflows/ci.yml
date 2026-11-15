@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: build the image
+        run: docker build -t silent-cinema .
+      - name: start it and ask the health check
+        run: |
+          docker run -d --name sc -p 127.0.0.1:8088:8088 silent-cinema
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8088/robots.txt && exit 0
+            sleep 1
+          done
+          docker logs sc
+          exit 1
