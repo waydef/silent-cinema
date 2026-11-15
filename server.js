@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
+const net = require('net');
 const { spawn, execFile } = require('child_process');
 const { WebSocketServer } = require('ws');
 const { Stream } = require('./stream');
@@ -88,10 +89,17 @@ function isLocal(req) {
   return !!req.socket[VIA_HOST];
 }
 
+let proxyHint = false;
 function clientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
   if (TRUST_PROXY && !isLocal(req)) {
-    const hops = String(req.headers['x-forwarded-for'] || '').split(',').map((x) => x.trim()).filter(Boolean);
-    if (hops.length) return hops[hops.length - 1].replace(/^::ffff:/, '');
+    const last = String(fwd || '').split(',').map((x) => x.trim().replace(/^::ffff:/, '')).filter(Boolean).pop();
+    if (last && net.isIP(last)) return last;
+  } else if (fwd && !isLocal(req) && !proxyHint) {
+    // behind a proxy without TRUST_PROXY everyone shares the proxy's address and its limits
+    // (12 viewers per address), which looks like a bug from the outside
+    proxyHint = true;
+    log('requests carry x-forwarded-for but TRUST_PROXY is off: every viewer counts as the proxy address. set TRUST_PROXY=1 if a proxy on this machine is the only way in');
   }
   return (req.socket.remoteAddress || '').replace(/^::ffff:/, '');
 }
@@ -169,7 +177,8 @@ function serveHls(req, res, stream, name, query) {
     }).catch((e) => {
       answered = true;
       if (res.destroyed || res.writableEnded) return;
-      if (e.message === 'busy') { res.setHeader('retry-after', '1'); return sendText(res, 503, 'busy'); }
+      // a full queue or a run that moved elsewhere: the player simply asks again in a second
+      if (e.message === 'busy' || e.message === 'lane restarted') { res.setHeader('retry-after', '1'); return sendText(res, 503, 'busy'); }
       log('segment failed', kind, i, e.message);
       sendText(res, 500, 'segment failed');
     });
@@ -432,7 +441,7 @@ function setAvatar(name, data, ws) {
   try { fs.writeFileSync(AVA_INDEX, JSON.stringify(avatars), { mode: 0o600 }); } catch (e) { log('avatar index failed', e.message); }
   log('avatar', data === null ? 'removed:' : 'set:', name);
   const msg = JSON.stringify({ t: 'avatars', map: avatarMap() });
-  for (const c of wss.clients) if (c.readyState === 1) c.send(msg);
+  for (const c of wss.clients) if (c.readyState === 1 && c.joined) c.send(msg);
 }
 
 const S = {
@@ -668,8 +677,13 @@ function saveNow() {
 }
 
 // a restart (update, reboot) keeps the exact position, not the one of the last periodic save
+// ffmpeg runs paused with SIGSTOP would outlive the server, so the stream goes down first
 for (const sig of ['SIGTERM', 'SIGINT']) {
-  process.on(sig, () => { saveNow(); process.exit(0); });
+  process.on(sig, () => {
+    saveNow();
+    if (S.session && S.session.stream) S.session.stream.destroy();
+    process.exit(0);
+  });
 }
 
 const person = (now) => ({ seen: now, bye: false, buf: 0, bufSince: 0 });
@@ -728,13 +742,15 @@ async function restoreState() {
   const list = Array.isArray(d.members) ? d.members : [];
   if (!list.length) return;
   const time = Number(d.time) || 0;
+  // new stream keys: the cache was wiped at start, and a player that kept the old address would
+  // never reload it when the restored session becomes ready
   const sess = newSession({
-    path: d.path, title: d.title, token: d.token,
+    path: d.path, title: d.title, token: rid(16),
     chat: d.chat || [], clock: { playing: false, time, at: Date.now() },
   });
   for (const m of list) {
     S.viewers.set(m.id, { id: m.id, name: m.name, ws: null, timer: null });
-    addMember(sess, m.id, m.name, m.token, m.control);
+    addMember(sess, m.id, m.name, null, m.control);
   }
   chatIds(sess);
   S.session = sess;
@@ -939,6 +955,7 @@ function onHost(ws, req) {
     S.host.close();
   }
   S.host = ws;
+  ws.joined = true;
   if (S.session) S.session.host.bye = false;
   pushHostPresence();
   wsSend(ws, { t: 'ver', build: build() });
@@ -1050,7 +1067,6 @@ function onViewer(ws, req) {
   let solved = local;
   wsSend(ws, { t: 'ver', build: build() });
   wsSend(ws, { t: 'pow', c: challenge, bits: POW_BITS });
-  wsSend(ws, { t: 'avatars', map: avatarMap() });
   wsSend(ws, { t: 'host', online: hostOnline(), name: S.hostName, busy: !!S.session });
   ws.on('message', (data) => {
     let m;
@@ -1106,6 +1122,9 @@ function onViewer(ws, req) {
       }
       const mine = isMember(me.id);
       if (mine) S.session.members.get(me.id).bye = false;
+      // the picture map names every nick that ever set one, so it waits for a joined page
+      ws.joined = true;
+      wsSend(ws, { t: 'avatars', map: avatarMap() });
       wsSend(ws, {
         t: 'joined', id: me.id, name: me.name, session: mine ? sessionView(me.id) : null, chat: mine ? S.session.chat : [],
         host: hostOnline(), hostName: S.hostName, busy: !!S.session,

@@ -201,6 +201,11 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     clearTimeout(flashTimer);
     flashTimer = setTimeout(() => { flashSum = { l: 0, r: 0 }; $('flashl').classList.remove('go'); $('flashr').classList.remove('go'); }, 700);
   }
+  // every skip shows the chevrons on its side, from a double tap, a button or a key alike
+  function skip(d) {
+    sync.skip(d);
+    if (sync.control) flash(d < 0 ? 'l' : 'r', d);
+  }
   const isControl = (t) => t.closest('.hud, .mid button, .sheet, .unmute, .cover, .notice');
   stage.addEventListener('pointerup', (e) => {
     if (isControl(e.target) || e.button > 0) return;
@@ -215,9 +220,7 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     const side = x < 0.35 ? 'l' : x > 0.65 ? 'r' : '';
     const now = performance.now();
     if (side && lastTap.side === side && now - lastTap.at < 320) {
-      const d = side === 'l' ? -10 : 10;
-      sync.skip(d);
-      flash(side, d);
+      skip(side === 'l' ? -10 : 10);
       lastTap.at = now;
       return;
     }
@@ -228,7 +231,7 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
   // ---------- buttons ----------
 
   for (const b of root.querySelectorAll('[data-skip]')) {
-    b.onclick = (e) => { e.stopPropagation(); sync.skip(Number(b.dataset.skip)); wake(); };
+    b.onclick = (e) => { e.stopPropagation(); skip(Number(b.dataset.skip)); wake(); };
   }
   $('playbtn').onclick = $('bigplay').onclick = (e) => { e.stopPropagation(); sync.toggle(); wake(); };
   $('tapbtn').onclick = () => { $('tap').classList.add('hidden'); video.muted = false; sync.tapToPlay(); };
@@ -344,7 +347,29 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     key: 'amb', title: tr('set.amb'), current: ambOn ? 'on' : 'off',
     items: [{ value: 'on', label: tr('set.on') }, { value: 'off', label: tr('set.off') }],
   });
+  // moving between the two levels: the card glides to its new height and the new content slides in
+  // from the side it comes from. the stagger of the rows plays only when the sheet opens (.fresh)
+  const card = sheet.querySelector('.sheet-card');
+  let navDir = 0;
+  let navTimer = null;
   function renderSheet() {
+    const dir = navDir;
+    navDir = 0;
+    const glideIt = dir !== 0 && sheet.classList.contains('open') && !calm();
+    // a quick second step starts from where the first one is, not from its end
+    if (glideIt) for (const a of [...card.getAnimations(), ...body.getAnimations()]) a.cancel();
+    const h0 = card.offsetHeight;
+    if (dir) sheet.classList.remove('fresh');
+    fillSheet();
+    if (!glideIt) return;
+    const h1 = card.offsetHeight;
+    clearTimeout(navTimer);
+    card.style.overflow = 'hidden';
+    navTimer = setTimeout(() => { card.style.overflow = ''; }, 240);
+    if (Math.abs(h1 - h0) > 1) card.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: 220, easing: 'cubic-bezier(.2, .7, .2, 1)' });
+    body.animate([{ opacity: 0.25, transform: `translateX(${12 * dir}px)` }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.16, 1, .3, 1)' });
+  }
+  function fillSheet() {
     body.replaceChildren();
     const own = media.options();
     const groups = [...own, ambGroup()];
@@ -363,7 +388,7 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
         v.textContent = cur.label;
         row.append(k, v);
         row.insertAdjacentHTML('beforeend', chevron);
-        row.onclick = (e) => { e.stopPropagation(); page = x.key; renderSheet(); };
+        row.onclick = (e) => { e.stopPropagation(); page = x.key; navDir = 1; renderSheet(); };
         body.append(row);
       }
       if (!own.length) {
@@ -380,7 +405,7 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     const t = document.createElement('span');
     t.textContent = g.title;
     back.append(t);
-    back.onclick = (e) => { e.stopPropagation(); page = null; renderSheet(); };
+    back.onclick = (e) => { e.stopPropagation(); page = null; navDir = -1; renderSheet(); };
     body.append(back);
     const list = document.createElement('div');
     list.className = 'opts';
@@ -393,7 +418,9 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
       row.onclick = (e) => {
         e.stopPropagation();
         page = null;
-        if (g.key === 'amb') { setAmb(it.value === 'on'); renderSheet(); } else media.choose(g.key, it.value);
+        navDir = -1;
+        if (g.key === 'amb') setAmb(it.value === 'on'); else media.choose(g.key, it.value);
+        if (navDir) renderSheet();
       };
       list.append(row);
     }
@@ -402,10 +429,10 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     if (on) on.scrollIntoView({ block: 'nearest' });
   }
   media.bind(renderSheet);
-  const setSheet = (open) => { sheet.classList.toggle('open', open); if (open) { page = null; renderSheet(); } wake(); };
+  const setSheet = (open) => { sheet.classList.toggle('open', open); sheet.classList.toggle('fresh', open); if (open) { page = null; renderSheet(); } wake(); };
   $('setbtn').onclick = (e) => { e.stopPropagation(); setSheet(!sheet.classList.contains('open')); };
   sheet.addEventListener('click', (e) => { if (e.target === sheet) setSheet(false); });
-  document.addEventListener('click', (e) => { if (!sheet.contains(e.target) && e.target !== $('setbtn')) sheet.classList.remove('open'); });
+  document.addEventListener('click', (e) => { if (!sheet.contains(e.target) && e.target !== $('setbtn')) sheet.classList.remove('open', 'fresh'); });
 
   // ---------- the picture fades in when its first frame is there ----------
 
@@ -520,8 +547,8 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     const step = e.shiftKey ? 60 : 10;
     let hit = true;
     if (k === ' ' || k === 'k') sync.toggle();
-    else if (k === 'arrowright' || k === 'l') sync.skip(step);
-    else if (k === 'arrowleft' || k === 'j') sync.skip(-step);
+    else if (k === 'arrowright' || k === 'l') skip(step);
+    else if (k === 'arrowleft' || k === 'j') skip(-step);
     else if (k === 'arrowup') { video.muted = false; video.volume = Math.min(1, video.volume + 0.05); }
     else if (k === 'arrowdown') video.volume = Math.max(0, video.volume - 0.05);
     // the second letter is the same key on a russian layout
@@ -539,7 +566,8 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
   // shows up in the top corner (when the chat is not on screen); a tap on it opens the chat
   let pingTimer = null;
   const ping = $('ping');
-  ping.onclick = (e) => { e.stopPropagation(); ping.classList.remove('show'); chat.toggle(); };
+  function hideNotify() { clearTimeout(pingTimer); ping.classList.remove('show'); }
+  ping.onclick = (e) => { e.stopPropagation(); hideNotify(); chat.toggle(); };
   function notify(m, chatShown) {
     if (chatShown) return;
     ping.querySelector('b').textContent = m.from;
@@ -618,6 +646,7 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     },
     onRetry(fn) { $('retry').onclick = () => { $('fail').classList.add('hidden'); fn(); }; },
     closeSheet() { setSheet(false); },
+    hideNotify,
     // the end of a film: the sound goes down with the picture; the returned function puts the
     // saved volume back once the player is empty
     fadeOut(ms) {

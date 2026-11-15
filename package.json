@@ -1,6 +1,6 @@
 {
   "name": "silent-cinema",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "self-hosted watch party: stream a video file from your own server and watch it in sync with friends, with chat and reactions",
   "license": "MIT",

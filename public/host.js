@@ -80,7 +80,7 @@ const ui = initPlayer({
   onStop: () => sock.send({ t: 'stop' }),
   stopHint: () => tr('stop.hostHint'),
 });
-const chat = createChat({ root: $('chatpanel'), button: $('chatbtn'), role: 'host', uid: () => 'host' });
+const chat = createChat({ root: $('chatpanel'), button: $('chatbtn'), role: 'host', uid: () => 'host', onSeen: () => ui.hideNotify() });
 // someone the host just removed lands in the lobby again; that is no news to the host
 const removed = new Set();
 const people = createPeople({ root: $('chatpanel'), uid: () => 'host', hostPage: true, send: (m) => { if (m.t === 'kick') removed.add(m.id); else if (m.t === 'admit') removed.delete(m.id); sock.send(m); }, onTab: (t) => { if (t === 'chat') chat.seen(); }, onAva: () => changeAva() });
@@ -231,8 +231,9 @@ function onDialog(m) {
 
 let libFiles = [];
 const LIB_SHOW = 200;
-function toggleLibrary(open = $('lib').classList.contains('hidden')) {
-  $('lib').classList.toggle('hidden', !open);
+function toggleLibrary(open = !$('lib').classList.contains('open')) {
+  $('lib').classList.toggle('open', open);
+  $('lib').setAttribute('aria-hidden', String(!open));
   $('pickbtn').setAttribute('aria-expanded', String(open));
   if (!open) return;
   $('libsearch').value = '';
@@ -249,7 +250,23 @@ function onLibrary(m) {
   if (libFiles.length >= 8 && !isTouch()) $('libsearch').focus({ preventScroll: true });
 }
 
+// the list grows when the files arrive and shrinks with the filter: the box glides to its new height
+let libTimer = null;
 function renderLibrary(m = {}) {
+  const lib = $('lib');
+  const glideIt = lib.classList.contains('open') && !calm();
+  if (glideIt) lib.getAnimations().forEach((a) => a.cancel());
+  const h0 = lib.offsetHeight;
+  fillLibrary(m);
+  if (!glideIt) return;
+  const h1 = lib.offsetHeight;
+  if (Math.abs(h1 - h0) < 1) return;
+  clearTimeout(libTimer);
+  lib.style.overflow = 'hidden';
+  libTimer = setTimeout(() => { lib.style.overflow = ''; }, 240);
+  lib.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: 220, easing: 'cubic-bezier(.16, 1, .3, 1)' });
+}
+function fillLibrary(m) {
   const q = $('libsearch').value.trim().toLowerCase();
   const hits = q ? libFiles.filter((f) => f.rel.toLowerCase().includes(q)) : libFiles;
   const list = $('liblist');
@@ -278,7 +295,7 @@ function renderLibrary(m = {}) {
 }
 $('libsearch').addEventListener('input', () => renderLibrary());
 $('libother').onclick = () => { toggleLibrary(false); sock.send({ t: 'dialog' }); };
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('lib').classList.contains('hidden')) toggleLibrary(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('lib').classList.contains('open')) toggleLibrary(false); });
 
 function clearFile() {
   selFile = null;

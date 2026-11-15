@@ -155,6 +155,8 @@ test('a nick needs the proof of work', async () => {
   const ws = connect(pub, 'viewer');
   await ws.opened;
   await ws.next((m) => m.t === 'pow');
+  // the avatar map names every nick that set a picture: nobody gets it before joining
+  await assert.rejects(ws.next((m) => m.t === 'avatars', 300));
   ws.json({ t: 'join', name: 'bot', pow: 'nope' });
   assert.equal((await ws.next((m) => m.t === 'joinerr')).code, 'reload');
   ws.close();

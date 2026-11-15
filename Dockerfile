@@ -26,6 +26,6 @@ VOLUME /data
 EXPOSE 8080 8088
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
-  CMD wget -q -O /dev/null http://127.0.0.1:8088/robots.txt || exit 1
+  CMD wget -q -O /dev/null "http://127.0.0.1:${HOST_PORT}/robots.txt" || exit 1
 
 CMD ["node", "server.js"]

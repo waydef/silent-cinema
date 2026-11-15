@@ -195,7 +195,9 @@ class Lane {
     if (fs.existsSync(this.file(i))) return Promise.resolve(this.file(i));
     this.want = i;
     let r = this.run;
-    if (!r || r.dead || i < r.from || i >= r.next + LANE_REACH) r = this.start(i);
+    // the run only moves forward: a segment it already wrote and that was deleted since (a seek
+    // back further than KEEP_BEHIND) needs a new run, or the request would wait forever
+    if (!r || r.dead || i < r.next || i >= r.next + LANE_REACH) r = this.start(i);
     else if (r.paused && i >= r.next - LANE_AHEAD / 2) this.resume(r);
     return new Promise((resolve, reject) => {
       if (!r.waiters.has(i)) r.waiters.set(i, []);

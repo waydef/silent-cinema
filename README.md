@@ -33,9 +33,11 @@ each person in the room gets their own random key to the stream. removing someon
 
 ## requirements
 
+- linux or macos. on windows run it in docker or wsl2: the server relies on `nice` and on pausing ffmpeg with `SIGSTOP`.
 - node.js 22 or newer
 - ffmpeg and ffprobe on the `PATH`
 - optional: `zenity` for the desktop file dialog
+- cpu: 8-bit h264 is copied and costs almost nothing. hevc, av1, 10-bit and some blu-ray remuxes are encoded to x264 while you watch: on a desktop cpu a 5.6 s segment of the 1080p level takes about 1.1 s, so a small vps will struggle with that. files without a matroska index (most mp4 and avi) need a keyframe scan of a few seconds before the start.
 - upload bandwidth: every viewer gets their own copy of the stream, so the number of viewers is roughly your upload speed divided by the film's bitrate. an 18 mbit/s film on a 480 mbit/s line is about 20 viewers with headroom; viewers on the 720p level need about 4 mbit/s each.
 
 ## quick start
@@ -73,7 +75,9 @@ use https for anything beyond a lan test: browsers keep the screen awake (wake l
 - caddy: [deploy/Caddyfile](deploy/Caddyfile), two lines, certificates included
 - nginx: [deploy/nginx.conf](deploy/nginx.conf)
 
-run silent.cinema with `BIND=127.0.0.1` and `TRUST_PROXY=1` behind either of them, and set `PUBLIC_HOSTS` and `PUBLIC_URL` to your domain.
+run silent.cinema with `BIND=127.0.0.1` and `TRUST_PROXY=1` behind either of them, and set `PUBLIC_HOSTS` and `PUBLIC_URL` to your domain. without `TRUST_PROXY` every viewer arrives from the proxy's address and shares its limits, so the 13th person gets "too many tabs from one address"; the server logs a hint when it sees this. `TRUST_PROXY` takes the last `x-forwarded-for` hop, so with two proxies in a row (a cdn in front of nginx) the first one has to restore the real address.
+
+there is no room password. strangers who find the address can only wait in the lobby until you let them in, unless you switch on "let latecomers in right away": keep that off on a public address. https names end up in public certificate transparency logs, so assume the address will be found.
 
 without a proxy, give the server a certificate with `TLS_CERT` and `TLS_KEY`. a renewed certificate is picked up on `SIGHUP` (`systemctl reload silent-cinema`) without dropping anyone.
 

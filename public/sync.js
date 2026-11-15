@@ -17,7 +17,7 @@ const START_EARLY = 40;     // ms: play() needs about this long before the first
 function createSync({ video, sock, role, uid }) {
   // who this page is among the people in the room: 'host' or the viewer id
   const self = () => (uid ? uid() : role);
-  let allowed = true;            // the host can keep the buttons to himself
+  let allowed = true;            // the host can keep the buttons to themselves
   let st = null;                 // { seq, playing, held, time, at, holds }
   let ownPending = 0;            // own commands the server has not answered yet
   let guardUntil = 0;
@@ -57,8 +57,9 @@ function createSync({ video, sock, role, uid }) {
     video.currentTime = t;
   }
 
+  let needTap = false;            // even muted playback was refused: wait for the person's tap
   function localPlay() {
-    if (!video.paused || playing) return;
+    if (!video.paused || playing || needTap) return;
     // a hidden phone page must not start sound or fall back to mute; it catches up when shown
     if (!visible() && isTouch()) return;
     expect.play++;
@@ -75,7 +76,7 @@ function createSync({ video, sock, role, uid }) {
           blocked = true;
           emit('blocked', true);
           localPlay();
-        } else emit('tap', true);
+        } else { needTap = true; emit('tap', true); }
       }
     });
   }
@@ -93,12 +94,14 @@ function createSync({ video, sock, role, uid }) {
     const diff = video.currentTime - t;
     // a start in the near future: stand ready on the frame and go at the agreed moment
     const lead = want() ? st.at - sock.now() : 0;
-    if (lead > 0) {
+    // inside the last START_EARLY ms play() is called right away; pausing again there would stop
+    // the start that was just made and begin it once more a few ms later
+    if (lead > START_EARLY) {
       localPause();
       if (Math.abs(diff) > 0.05 && !video.seeking) localSeek(t);
       clearTimeout(startTimer);
-      startTimer = setTimeout(tick, Math.max(0, lead - START_EARLY));
-      if (lead > START_EARLY) return;
+      startTimer = setTimeout(tick, lead - START_EARLY);
+      return;
     }
     const now = performance.now();
     if (!want()) {
@@ -197,7 +200,9 @@ function createSync({ video, sock, role, uid }) {
     const on = want() && visible();
     try {
       if (on && !wakeLock && navigator.wakeLock) {
-        wakeLock = await navigator.wakeLock.request('screen');
+        const lock = await navigator.wakeLock.request('screen');
+        if (!(want() && visible())) { lock.release().catch(() => {}); return; }
+        wakeLock = lock;
         wakeLock.addEventListener('release', () => { wakeLock = null; });
       } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
     } catch { wakeLock = null; }
@@ -240,6 +245,9 @@ function createSync({ video, sock, role, uid }) {
       if (trace.length > 40) trace.shift();
       // while own commands are on their way, states sent before them would undo them for a moment
       if (m.by && m.by.id === self() && ownPending) ownPending--;
+      // a command from someone else always goes through: dropping it during the guard would let
+      // a viewer's play swallow the host's pause for up to 5 s
+      if (m.by && m.by.id !== self()) ownPending = 0;
       if (ownPending && performance.now() < guardUntil) return;
       ownPending = 0;
       const prev = st;
@@ -266,7 +274,7 @@ function createSync({ video, sock, role, uid }) {
       emit('state', st);
       wake();
     },
-    reset() { st = null; ownPending = 0; pending = {}; sendBuf(false); clearTimeout(bufTimer); bufTimer = null; video.playbackRate = 1; wake(); },
+    reset() { st = null; ownPending = 0; pending = {}; needTap = false; sendBuf(false); clearTimeout(bufTimer); bufTimer = null; video.playbackRate = 1; wake(); },
     get state() { return st; },
     target,
     playingWanted: want,
@@ -297,8 +305,8 @@ function createSync({ video, sock, role, uid }) {
       own({ time: t, at: st.playing ? sock.now() + 300 : sock.now() });
     },
     skip(d) { api.seek(target() + d); },
-    unmute() { video.muted = false; blocked = false; emit('blocked', false); localPlay(); },
-    tapToPlay() { localPlay(); },
+    unmute() { video.muted = false; blocked = false; needTap = false; emit('blocked', false); localPlay(); },
+    tapToPlay() { needTap = false; localPlay(); },
     on(k, f) { listeners[k].push(f); },
     trace,
     drift: () => (st && video.readyState >= 1 ? video.currentTime - target() : null),

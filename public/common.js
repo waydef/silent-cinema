@@ -204,7 +204,7 @@ function emojiImg(code, animated) {
   return img;
 }
 
-function createChat({ root, button, role, uid }) {
+function createChat({ root, button, role, uid, onSeen = () => {} }) {
   const self = () => (uid ? uid() : role);
   const log = root.querySelector('.log');
   const form = root.querySelector('form');
@@ -523,7 +523,7 @@ function createChat({ root, button, role, uid }) {
     bubble.after(tools);
     bubble.addEventListener('contextmenu', (e) => { e.preventDefault(); openMenu(entry); });
     // double click or double tap: the heart, as the quick reaction in telegram
-    bubble.addEventListener('dblclick', (e) => { e.preventDefault(); if (entry.m.id) signal({ t: 'react', id: entry.m.id, e: '2764_fe0f' }); });
+    bubble.addEventListener('dblclick', (e) => { e.preventDefault(); window.getSelection()?.removeAllRanges(); if (entry.m.id) signal({ t: 'react', id: entry.m.id, e: '2764_fe0f' }); });
     // touch: long press opens the menu, a swipe to the left answers
     let press = null;
     bubble.addEventListener('pointerdown', (e) => {
@@ -601,7 +601,7 @@ function createChat({ root, button, role, uid }) {
     watch.classList.toggle('chat-open', open);
     PREF.set('chat', open);
     if (open) {
-      if (visible()) { unread = 0; badge(); }
+      if (visible()) { unread = 0; badge(); onSeen(); }
       log.scrollTop = log.scrollHeight;
       if (!isTouch() && !root.classList.contains('tab-people')) input.focus({ preventScroll: true });
     } else closeMenu();
@@ -625,7 +625,9 @@ function createChat({ root, button, role, uid }) {
     if (replyTo) { e.stopPropagation(); setReply(null); } else input.blur();
   });
   if (PREF.get('chat', !isTouch())) watch.classList.add('chat-open');
-  new ResizeObserver(() => { if (visible() && unread) { unread = 0; badge(); } }).observe(root);
+  // the chat came into view by any way (button, key, a phone turned upright): the unread count and
+  // the message card over the picture have done their job
+  new ResizeObserver(() => { if (visible()) { if (unread) { unread = 0; badge(); } onSeen(); } }).observe(root);
 
   function reset() {
     log.replaceChildren();
@@ -653,7 +655,7 @@ function createChat({ root, button, role, uid }) {
     toggle() { set(!watch.classList.contains('chat-open')); },
     open() { set(true); },
     // the chat tab came back to the front
-    seen() { if (visible()) { unread = 0; badge(); log.scrollTop = log.scrollHeight; } },
+    seen() { if (visible()) { unread = 0; badge(); onSeen(); log.scrollTop = log.scrollHeight; } },
     shown: () => visible(),
     mine: (m) => isMine(m),
     history(list) {
@@ -846,7 +848,7 @@ function screens(ids) {
   const el = (id) => document.getElementById(id);
   const root = document.documentElement;
   let cur = null;
-  const settle = (e) => { clearTimeout(e._swap); e.classList.remove('leaving', 'entering', 'steady'); };
+  const settle = (e) => { clearTimeout(e._swap); e.classList.remove('leaving', 'entering', 'steady', 'to-film', 'from-film'); };
   return function show(which) {
     const to = el(which);
     const from = cur && cur !== which ? el(cur) : null;
@@ -866,14 +868,19 @@ function screens(ids) {
       // the film fades in over the lobby, which goes only once it is covered; the lobby light
       // is switched off (html.watching) at the same moment, so it never pops
       to.classList.add('entering');
+      // the lobby's text clears quickly while the film still fades in, so it never shows through
+      // the controls; its background stays, so there is no dark gap
+      from.classList.add('to-film');
       root.classList.remove('boot');
-      from._swap = setTimeout(() => { from.classList.add('hidden'); booted(which); }, 820);
+      from._swap = setTimeout(() => { settle(from); from.classList.add('hidden'); booted(which); }, 820);
       to._swap = setTimeout(() => to.classList.remove('entering'), 900);
       return;
     }
     const film = from.classList.contains('watch');
     const steady = !film && from.classList.contains('lobby') && to.classList.contains('lobby');
     to.classList.toggle('steady', steady);
+    // back from the film: the player's own text goes first, the lobby text comes after it
+    to.classList.toggle('from-film', film);
     from.classList.toggle('steady', steady);
     from.classList.add('leaving');
     from._swap = setTimeout(() => { settle(from); from.classList.add('hidden'); }, film ? 760 : 420);

@@ -132,7 +132,7 @@ const ui = initPlayer({
   stopHint: () => tr(people.size() <= 1 ? 'stop.viewerLast' : 'stop.viewerMore'),
 });
 // the chat button lives in the player hud, so the chat is wired after the player exists
-const chat = createChat({ root: $('chatpanel'), button: $('chatbtn'), role: 'viewer', uid: () => myId });
+const chat = createChat({ root: $('chatpanel'), button: $('chatbtn'), role: 'viewer', uid: () => myId, onSeen: () => ui.hideNotify() });
 const people = createPeople({ root: $('chatpanel'), uid: () => myId, hostPage: false, onTab: (t) => { if (t === 'chat') chat.seen(); }, onAva: () => changeAva() });
 chat.onSend((text, reply) => sock.send({ t: 'chat', text, reply }));
 chat.onSignal((m) => sock.send(m));

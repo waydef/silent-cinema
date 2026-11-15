@@ -45,12 +45,12 @@
           <span class="picker-text"><span class="fname" id="fname" data-t="pick.choose">choose a film</span><span class="fmeta" id="fmeta"></span></span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h5l2 2h9v8.5c0 .8-.7 1.5-1.5 1.5h-13c-.8 0-1.5-.7-1.5-1.5z"/></svg>
         </button>
-        <div class="lib hidden" id="lib">
+        <div class="lib" id="lib" aria-hidden="true"><div class="lib-in">
           <input id="libsearch" type="search" class="hidden" placeholder="search" aria-label="search" data-t-ph="lib.search" data-t-aria="lib.search" autocomplete="off" spellcheck="false" enterkeyhint="search">
           <div class="lib-list" id="liblist"></div>
           <p class="note" id="libnote" role="status"></p>
           <button class="link" id="libother" type="button" data-t="lib.other">another file on this computer…</button>
-        </div>
+        </div></div>
       </section>
 
       <div class="actions">

@@ -12,8 +12,12 @@ services:
       - ./films:/media:ro
       - data:/data
     environment:
-      PUBLIC_URL: https://cinema.example.com
+      # the address the host page tells people to open
+      # PUBLIC_URL: https://cinema.example.com
+      # set when a reverse proxy on this machine is the only way to port 8080
       # TRUST_PROXY: "1"
+      # extra names for the host page, when port 8088 is published on a lan address
+      # HOST_HOSTS: "nas.local"
       # HOST_NAME: "host"
 
 volumes:
