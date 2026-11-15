@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:26-alpine
 
 # ffmpeg brings ffprobe; busybox already has nice
 RUN apk add --no-cache ffmpeg
