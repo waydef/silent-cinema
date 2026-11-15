@@ -63,9 +63,14 @@ before(async () => {
   });
 });
 
-after(() => {
-  if (proc) proc.kill('SIGTERM');
-  if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
+// the server writes its state on SIGTERM, so the folder goes only after the process is gone
+after(async () => {
+  if (proc && proc.exitCode === null) {
+    const gone = new Promise((resolve) => proc.once('exit', resolve));
+    proc.kill('SIGTERM');
+    await gone;
+  }
+  if (tmp) fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 3 });
 });
 
 const get = (port, p) => fetch(`http://127.0.0.1:${port}${p}`);
