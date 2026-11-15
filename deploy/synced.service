@@ -1,24 +1,24 @@
-# /etc/systemd/system/silent-cinema.service
-# expects the code in /opt/silent-cinema (npm ci --omit=dev) and a user named cinema
-# that can read the film folder. settings go to /etc/silent-cinema.env (see .env.example).
+# /etc/systemd/system/synced.service
+# expects the code in /opt/synced (npm ci --omit=dev) and a user named synced
+# that can read the film folder. settings go to /etc/synced.env (see .env.example).
 [Unit]
-Description=silent.cinema watch party
+Description=synced watch party
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-User=cinema
-WorkingDirectory=/opt/silent-cinema
-Environment=STATE_DIR=/var/lib/silent-cinema CACHE_DIR=/var/cache/silent-cinema
-EnvironmentFile=-/etc/silent-cinema.env
+User=synced
+WorkingDirectory=/opt/synced
+Environment=STATE_DIR=/var/lib/synced CACHE_DIR=/var/cache/synced
+EnvironmentFile=-/etc/synced.env
 ExecStart=/usr/bin/node server.js
 # picks up a renewed certificate without dropping anyone
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=2
 
-StateDirectory=silent-cinema
-CacheDirectory=silent-cinema
+StateDirectory=synced
+CacheDirectory=synced
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=read-only

@@ -32,10 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: build the image
-        run: docker build -t silent-cinema .
+        run: docker build -t synced .
       - name: start it and ask the health check
         run: |
-          docker run -d --name sc -p 127.0.0.1:8088:8088 silent-cinema
+          docker run -d --name sc -p 127.0.0.1:8088:8088 synced
           for i in $(seq 1 20); do
             curl -fsS http://127.0.0.1:8088/robots.txt && exit 0
             sleep 1

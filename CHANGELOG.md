@@ -1,5 +1,12 @@
 # changelog
 
+## 1.2.0 (2026-11-15)
+
+- renamed from silent.cinema to synced. the repository moved to github.com/waydef/synced, and github redirects the old address.
+- the logo is the plain word "synced", without the amber dot.
+- default folders are now `~/.local/state/synced` and `~/.cache/synced`. an install that used the old defaults keeps its room only if `STATE_DIR` points to the old folder.
+- the docker image, compose service and systemd unit are called `synced`. the example domain is `watch.example.com`.
+
 ## 1.1.0 (2026-11-15)
 
 reviewed together with gemini 4 hydrogen and checked against a frame-by-frame recording of every animation.

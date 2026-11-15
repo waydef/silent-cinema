@@ -15,7 +15,7 @@ labels: bug
 
 ## environment
 
-- silent.cinema version or commit:
+- synced version or commit:
 - how it runs (node, docker, behind which proxy):
 - node and ffmpeg versions:
 - browser and device of the host and of the viewer:

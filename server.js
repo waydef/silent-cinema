@@ -1,5 +1,5 @@
 'use strict';
-// silent.cinema: one host picks a video file and the people they let into the room watch it in
+// synced: one host picks a video file and the people they let into the room watch it in
 // sync. the server owns the playback clock; the host and every viewer follow it.
 //
 // two listeners: the public one for viewers (plain http behind a reverse proxy, or https with
@@ -41,7 +41,7 @@ const MEDIA_DIR = path.resolve(expand(env.MEDIA_DIR || path.join(HOME, 'Videos')
 // library: the film folder as a list on the host page; dialog: the desktop file chooser (zenity)
 // on the server's own screen; auto: the folder when it exists, the dialog when a display is there
 const PICKER = env.PICKER || 'auto';
-const CACHE_DIR = path.resolve(expand(env.CACHE_DIR || path.join(HOME, '.cache', 'silent-cinema')));
+const CACHE_DIR = path.resolve(expand(env.CACHE_DIR || path.join(HOME, '.cache', 'synced')));
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const HLS_JS = require.resolve('hls.js/dist/hls.min.js');
 
@@ -275,7 +275,7 @@ function openDialog(ws) {
   // under systemd the dialog is started in the user's own systemd manager: a service that holds a
   // capability (to bind port 443) has children the desktop file chooser portal cannot identify
   dialogProc = env.INVOCATION_ID && onPath('systemd-run')
-    ? spawn('systemd-run', ['--user', '--pipe', '--wait', '--quiet', '--collect', '--unit=silent-cinema-dialog', '--setenv=GTK_USE_PORTAL=1', ...args],
+    ? spawn('systemd-run', ['--user', '--pipe', '--wait', '--quiet', '--collect', '--unit=synced-dialog', '--setenv=GTK_USE_PORTAL=1', ...args],
       { env: denv, stdio: ['ignore', 'pipe', 'ignore'] })
     : spawn(args[0], args.slice(1), { env: denv, stdio: ['ignore', 'pipe', 'ignore'] });
   wsSend(ws, { t: 'dialog', state: 'open' });
@@ -331,7 +331,7 @@ function describeStreams(info) {
 // ---------- session state ----------
 
 const rid = (n = 16) => crypto.randomBytes(n).toString('hex');
-const STATE_DIR = path.resolve(expand(env.STATE_DIR || path.join(HOME, '.local', 'state', 'silent-cinema')));
+const STATE_DIR = path.resolve(expand(env.STATE_DIR || path.join(HOME, '.local', 'state', 'synced')));
 const STATE_FILE = path.join(STATE_DIR, 'state.json');
 // a page that said goodbye (closed or reloaded) gets a short window, a connection that just
 // died (phone locked, train tunnel, wifi switch) gets a long one
@@ -1340,7 +1340,7 @@ for (const s of [server, local]) {
 local.listen(HOST_PORT, HOST_BIND, () => {
   server.listen(PORT, BIND, () => {
     const p = pickerInfo();
-    log(`silent.cinema: viewers on ${tls ? 'https' : 'http'}://${BIND}:${PORT}, host page on http://${HOST_BIND}:${HOST_PORT}/host, build ${build()}`);
+    log(`synced: viewers on ${tls ? 'https' : 'http'}://${BIND}:${PORT}, host page on http://${HOST_BIND}:${HOST_PORT}/host, build ${build()}`);
     log(`films: ${[p.library && `folder ${MEDIA_DIR}`, p.dialog && 'file dialog'].filter(Boolean).join(' and ') || `nothing (no folder ${MEDIA_DIR}, no display for the dialog)`}`);
     restoreState().catch((e) => log('restore error', e.message));
   });

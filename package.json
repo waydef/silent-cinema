@@ -1,16 +1,16 @@
 {
-  "name": "silent-cinema",
-  "version": "1.1.0",
+  "name": "synced",
+  "version": "1.2.0",
   "private": true,
   "description": "self-hosted watch party: stream a video file from your own server and watch it in sync with friends, with chat and reactions",
   "license": "MIT",
   "author": "waydef",
-  "homepage": "https://github.com/waydef/silent-cinema#readme",
+  "homepage": "https://github.com/waydef/synced#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waydef/silent-cinema.git"
+    "url": "git+https://github.com/waydef/synced.git"
   },
-  "bugs": "https://github.com/waydef/silent-cinema/issues",
+  "bugs": "https://github.com/waydef/synced/issues",
   "keywords": ["watch-party", "self-hosted", "hls", "ffmpeg", "sync", "movie-night", "rave-alternative"],
   "main": "server.js",
   "engines": {

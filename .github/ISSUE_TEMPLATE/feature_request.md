@@ -1,6 +1,6 @@
 ---
 name: feature request
-about: an idea for silent.cinema
+about: an idea for synced
 labels: enhancement
 ---
 

@@ -370,7 +370,7 @@ function onSession(s, reason) {
     loadedMedia = null;
     const gen = ++endGen;
     const restore = ui.fadeOut(650);
-    document.title = `${tr('host.doc')} · silent.cinema`;
+    document.title = `${tr('host.doc')} · synced`;
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     setTimeout(() => {
       if (gen !== endGen) return;

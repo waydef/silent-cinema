@@ -1,4 +1,4 @@
-/* silent.cinema: twilight slate and a little grain, one warm lamp (amber) for the main action.
+/* synced: twilight slate and a little grain, one warm lamp (amber) for the main action.
    solid sans type without tracking, tight lines. mobile first; the player follows the picture. */
 :root {
   --bg: #0a0b10;
@@ -73,7 +73,6 @@ input:not([type=range]):focus-visible { outline: none; }
 svg { display: block; }
 
 .mark { font-size: 15px; font-weight: 600; color: var(--dim); white-space: nowrap; }
-.mark b { color: var(--amber); font-weight: 600; }
 .err { color: var(--bad); font-size: 14px; }
 .err:empty, .note:empty { display: none; }
 .note { color: var(--dim); font-size: 14px; }
@@ -144,7 +143,6 @@ button.link:hover { color: var(--ink); }
 #app > .from-film:not(.leaving) :is(.lobby-body, .console-in) > * { animation: appear .55s var(--ease-out) calc(var(--d, 0s) + .24s) both; }
 #app > .from-film:not(.leaving) :is(.mark, .status) { animation: fadein .35s var(--ease) .22s both; }
 #app > .lobby.steady:not(.leaving) { animation: none; }
-#app > .lobby.steady:not(.leaving) .mark b { animation: none; }
 #app > .lobby.steady:not(.leaving) .lobby-body { --lag: .16s; animation: rise .7s var(--ease-out) .12s both; }
 /* the arrow of the nick field leaves through the edge of its circle when the nick is sent */
 .nick button { overflow: hidden; }
@@ -203,13 +201,6 @@ button.link:hover { color: var(--ink); }
 .sweep i { display: block; width: 36%; height: 100%; border-radius: 2px; background: var(--amber); animation: sweep 1.7s cubic-bezier(.45, 0, .55, 1) infinite alternate; }
 @keyframes sweep { from { transform: translateX(0); } to { transform: translateX(177.8%); } }
 #wait:has(#waitnote.err:not(:empty)) .sweep { display: none; }
-.mark b { animation: lamp 1.6s ease-out .3s both; }
-/* the dot lights up like a warm lamp: it stays in place and only its light comes and settles */
-@keyframes lamp {
-  0% { opacity: .12; text-shadow: 0 0 0 rgba(217, 155, 102, 0); }
-  35% { opacity: 1; text-shadow: 0 0 8px rgba(255, 190, 130, .95), 0 0 18px rgba(217, 155, 102, .55); }
-  100% { opacity: 1; text-shadow: 0 0 3px rgba(217, 155, 102, .25); }
-}
 #wait #waitnote { margin-bottom: 14px; }
 
 /* ---------- host console ---------- */

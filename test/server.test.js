@@ -32,7 +32,7 @@ function freePort() {
 }
 
 before(async () => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'silent-cinema-test-'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'synced-test-'));
   const media = path.join(tmp, 'media');
   fs.mkdirSync(media);
   if (hasFfmpeg) {
@@ -125,7 +125,7 @@ test('the viewer page is public and carries its security headers', async () => {
   assert.equal(r.status, 200);
   assert.match(r.headers.get('content-security-policy'), /default-src 'self'/);
   assert.equal(r.headers.get('x-robots-tag'), 'noindex, nofollow');
-  assert.match(await r.text(), /silent<b>\.<\/b>cinema/);
+  assert.match(await r.text(), /<div class="mark">synced<\/div>/);
   assert.equal((await get(pub, '/static/hls.min.js')).status, 200);
   assert.equal((await get(pub, '/static/../server.js')).status, 404);
 });

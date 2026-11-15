@@ -1,4 +1,4 @@
-# silent.cinema
+# synced
 
 a self-hosted watch party. you put a video file on your own server, open the host page, and the friends you let in watch it with you in sync: one shared pause, one shared seek bar, a chat with replies and reactions. think of rave, except the film never leaves your machine and nobody needs an account.
 
@@ -43,8 +43,8 @@ each person in the room gets their own random key to the stream. removing someon
 ## quick start
 
 ```sh
-git clone https://github.com/waydef/silent-cinema.git
-cd silent-cinema
+git clone https://github.com/waydef/synced.git
+cd synced
 npm ci --omit=dev
 MEDIA_DIR=~/Videos npm start
 ```
@@ -54,8 +54,8 @@ open `http://127.0.0.1:8088/host` on the same machine, and send your friends the
 ## docker
 
 ```sh
-git clone https://github.com/waydef/silent-cinema.git
-cd silent-cinema
+git clone https://github.com/waydef/synced.git
+cd synced
 mkdir films        # put the videos here
 docker compose up -d --build
 ```
@@ -75,13 +75,13 @@ use https for anything beyond a lan test: browsers keep the screen awake (wake l
 - caddy: [deploy/Caddyfile](deploy/Caddyfile), two lines, certificates included
 - nginx: [deploy/nginx.conf](deploy/nginx.conf)
 
-run silent.cinema with `BIND=127.0.0.1` and `TRUST_PROXY=1` behind either of them, and set `PUBLIC_HOSTS` and `PUBLIC_URL` to your domain. without `TRUST_PROXY` every viewer arrives from the proxy's address and shares its limits, so the 13th person gets "too many tabs from one address"; the server logs a hint when it sees this. `TRUST_PROXY` takes the last `x-forwarded-for` hop, so with two proxies in a row (a cdn in front of nginx) the first one has to restore the real address.
+run synced with `BIND=127.0.0.1` and `TRUST_PROXY=1` behind either of them, and set `PUBLIC_HOSTS` and `PUBLIC_URL` to your domain. without `TRUST_PROXY` every viewer arrives from the proxy's address and shares its limits, so the 13th person gets "too many tabs from one address"; the server logs a hint when it sees this. `TRUST_PROXY` takes the last `x-forwarded-for` hop, so with two proxies in a row (a cdn in front of nginx) the first one has to restore the real address.
 
 there is no room password. strangers who find the address can only wait in the lobby until you let them in, unless you switch on "let latecomers in right away": keep that off on a public address. https names end up in public certificate transparency logs, so assume the address will be found.
 
-without a proxy, give the server a certificate with `TLS_CERT` and `TLS_KEY`. a renewed certificate is picked up on `SIGHUP` (`systemctl reload silent-cinema`) without dropping anyone.
+without a proxy, give the server a certificate with `TLS_CERT` and `TLS_KEY`. a renewed certificate is picked up on `SIGHUP` (`systemctl reload synced`) without dropping anyone.
 
-a systemd unit with sandboxing is in [deploy/silent-cinema.service](deploy/silent-cinema.service).
+a systemd unit with sandboxing is in [deploy/synced.service](deploy/synced.service).
 
 ## configuration
 
@@ -101,8 +101,8 @@ everything is set through environment variables; [.env.example](.env.example) li
 | `PICKER` | `auto` | `library`: the film folder; `dialog`: the desktop file dialog; `auto`: the folder when it exists, the dialog when a display and `zenity` are there |
 | `MEDIA_DIR` | `~/Videos` | the film folder, scanned recursively (6 levels, hidden entries skipped) |
 | `ZENITY` | `zenity` | file dialog command |
-| `STATE_DIR` | `~/.local/state/silent-cinema` | the saved room and the avatars |
-| `CACHE_DIR` | `~/.cache/silent-cinema` | stream segments of the running session, wiped at start and at the end of a session |
+| `STATE_DIR` | `~/.local/state/synced` | the saved room and the avatars |
+| `CACHE_DIR` | `~/.cache/synced` | stream segments of the running session, wiped at start and at the end of a session |
 | `MAX_VIEWERS` | `40` | people in one room |
 | `HOST_NAME` | `host` | the host's nick until they change it on the host page |
 
@@ -156,4 +156,4 @@ mit, see [LICENSE](LICENSE). the reaction emoji are google's animated noto emoji
 
 ## кратко на русском
 
-silent.cinema: совместный просмотр фильмов на своём сервере, аналог rave без чужих серверов и регистрации. хост выбирает файл из папки на сервере, друзья открывают сайт, вводят ник и смотрят синхронно: общая пауза и перемотка, чат с ответами и реакциями, своя озвучка, субтитры и качество у каждого. интерфейс на русском и английском (`?lang=ru`). запуск: `MEDIA_DIR=~/Videos npm start` или `docker compose up -d`, страница хоста `http://127.0.0.1:8088/host`.
+synced: совместный просмотр фильмов на своём сервере, аналог rave без чужих серверов и регистрации. хост выбирает файл из папки на сервере, друзья открывают сайт, вводят ник и смотрят синхронно: общая пауза и перемотка, чат с ответами и реакциями, своя озвучка, субтитры и качество у каждого. интерфейс на русском и английском (`?lang=ru`). запуск: `MEDIA_DIR=~/Videos npm start` или `docker compose up -d`, страница хоста `http://127.0.0.1:8088/host`.

@@ -1,6 +1,6 @@
 # security
 
-please report vulnerabilities privately through github: "security" tab, "report a vulnerability" (https://github.com/waydef/silent-cinema/security/advisories/new). do not open a public issue for them.
+please report vulnerabilities privately through github: "security" tab, "report a vulnerability" (https://github.com/waydef/synced/security/advisories/new). do not open a public issue for them.
 
 include what an attacker can do, the steps to reproduce it and the version or commit.
 

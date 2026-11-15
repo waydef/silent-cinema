@@ -606,7 +606,7 @@ function initPlayer({ root, stage, video, media, sync, chat, role, onStop, stopL
     toast,
     notify,
     wake,
-    setTitle(text) { $('title').textContent = text; document.title = `${text} · silent.cinema`; },
+    setTitle(text) { $('title').textContent = text; document.title = `${text} · synced`; },
     // short blips (a page reload, a quick reconnect) never reach the screen: warnings and the
     // waiting line show up only when the state lasts
     setPeer(text, cls) {
